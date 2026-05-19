@@ -82,7 +82,7 @@ export function PositionFormBuilder({ departments }: { departments: any[] }) {
             description,
             qualifications,
             instructions,
-            deadline: deadline || null,
+            deadline: deadline ? new Date(deadline + "+05:30").toISOString() : null,
             status,
             dynamicFields: fields
          })
@@ -130,8 +130,8 @@ export function PositionFormBuilder({ departments }: { departments: any[] }) {
             </div>
             
             <div className="space-y-2">
-               <Label>Application Deadline</Label>
-               <Input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+               <Label>Application Deadline (IST Date & Time)</Label>
+               <Input type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
             </div>
             
             <div className="space-y-2">

@@ -32,7 +32,7 @@ export default async function PositionsPage() {
         <div className="grid grid-cols-1 gap-6">
           {positions && positions.length > 0 ? (
             positions.map((pos) => {
-              const dl = pos.deadline ? new Date(pos.deadline).toLocaleDateString('en-GB') : "Until Filled";
+              const dl = pos.deadline ? new Date(pos.deadline).toLocaleString('en-GB', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) + ' IST' : "Until Filled";
               const deptName = Array.isArray(pos.departments) ? (pos.departments[0] as any)?.name : (pos.departments as any)?.name;
               const isClosed = pos.status === 'closed';
 

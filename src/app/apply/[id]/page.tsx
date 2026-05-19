@@ -31,7 +31,7 @@ export default async function ApplyPage({ params }: { params: { id: string } }) 
 
   const deptName = Array.isArray(position.departments) ? (position.departments[0] as any)?.name : (position.departments as any)?.name;
   const isClosed = position.status === 'closed';
-  const dl = position.deadline ? new Date(position.deadline).toLocaleDateString('en-GB') : "Until Filled";
+  const dl = position.deadline ? new Date(position.deadline).toLocaleString('en-GB', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) + ' IST' : "Until Filled";
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-12 flex-1">

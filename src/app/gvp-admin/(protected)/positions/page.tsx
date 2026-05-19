@@ -36,7 +36,7 @@ export default async function AdminPositionsPage() {
             <tbody className="divide-y relative">
                {positions && positions.map(pos => {
                   const dept = Array.isArray(pos.departments) ? (pos.departments[0] as any)?.name : (pos.departments as any)?.name;
-                  const dl = pos.deadline ? new Date(pos.deadline).toLocaleDateString() : 'N/A';
+                  const dl = pos.deadline ? new Date(pos.deadline).toLocaleString('en-GB', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) + ' IST' : 'N/A';
                   return (
                      <tr key={pos.id} className="hover:bg-muted/30">
                        <td className="px-6 py-4 font-semibold text-foreground">{pos.title}</td>
