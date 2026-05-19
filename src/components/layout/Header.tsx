@@ -6,9 +6,11 @@ export function Header({ instituteName = "Global University" }: { instituteName?
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-        <Link href="/" className="flex items-center gap-2">
-          { /* Future dynamic logo can go here */ }
-          <span className="text-xl font-bold tracking-tight text-primary whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px] md:max-w-md">{instituteName}</span>
+        <Link href="/" className="flex items-center gap-3">
+          <img src="https://www.gvpcdpgc.edu.in/gvpcdpgc-logo.png" alt="Logo" className="h-10 w-auto object-contain" />
+          <span className="text-xs sm:text-sm md:text-lg font-extrabold tracking-tight text-primary leading-tight max-w-[200px] sm:max-w-md lg:max-w-2xl uppercase">
+            {instituteName}
+          </span>
         </Link>
         <nav className="flex items-center gap-6">
           <Link href="/" className="text-sm font-medium transition-colors hover:text-primary">

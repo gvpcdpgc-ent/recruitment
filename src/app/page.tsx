@@ -24,31 +24,8 @@ export default async function Home() {
 
   return (
     <div className="flex-col flex items-center w-full">
-      {/* Hero Section */}
-      <section className="w-full py-24 md:py-32 lg:py-40 border-b bg-gradient-to-b from-primary/5 to-background">
-        <div className="container mx-auto px-4 md:px-6 flex flex-col items-center text-center space-y-8">
-          <div className="max-w-[800px] space-y-4">
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
-              Join Our World-Class Faculty
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-              {instituteName} is actively seeking passionate educators and researchers 
-              to shape the future. Discover open positions and apply today.
-            </p>
-          </div>
-          <div className="flex gap-4">
-            <Link 
-              href="/positions" 
-              className={cn(buttonVariants({ size: "lg", variant: "default" }), "h-12 px-8 text-base")}
-            >
-              View All Open Positions
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* Featured Positions */}
-      <section className="w-full py-20 bg-background">
+      <section className="w-full py-12 md:py-20 bg-background">
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-3xl font-bold tracking-tight">Featured Openings</h2>
