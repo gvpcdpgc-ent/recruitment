@@ -1,0 +1,107 @@
+import { NextResponse } from 'next/server';
+import { supabaseServer } from '@/lib/supabase/server';
+
+export async function POST(request: Request) {
+  try {
+    const formData = await request.formData();
+    
+    // Extract base fields
+    const positionId = formData.get('positionId') as string;
+    const fullName = formData.get('fullName') as string;
+    const email = formData.get('email') as string;
+    const phone = formData.get('phone') as string;
+    const dynamicResponsesStr = formData.get('dynamicResponses') as string;
+    
+    if (!positionId || !email || !fullName) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const dynamicResponses = dynamicResponsesStr ? JSON.parse(dynamicResponsesStr) : {};
+
+    // Generate App Number: e.g. DEPT-FAC-YYYYMM-001
+    // We will do a simple prefix based on position's department
+    const { data: posData } = await supabaseServer
+      .from('positions')
+      .select('departments(name)')
+      .eq('id', positionId)
+      .single();
+
+    let prefix = 'GEN';
+    const dept = posData?.departments as any;
+    if (dept && !Array.isArray(dept) && dept.name) {
+      prefix = dept.name.substring(0, 3).toUpperCase();
+    }
+    
+    const dateStr = new Date().toISOString().replace(/-/g, '').substring(0, 6); // YYYYMM
+    
+    // Get count for sequence
+    const { count } = await supabaseServer
+      .from('applications')
+      .select('*', { count: 'exact', head: true });
+      
+    const seq = ((count || 0) + 1).toString().padStart(3, '0');
+    const applicationNumber = `${prefix}-FAC-${dateStr}-${seq}`;
+
+    // Upload Files
+    const fileEntries = Array.from(formData.entries()).filter(([key, val]) => val instanceof Blob);
+    const uploadedFiles = [];
+
+    for (const [key, val] of fileEntries) {
+      const file = val as File;
+      const ext = file.name.split('.').pop() || 'pdf';
+      const storageFieldName = key.replace('file_', '');
+      const newName = `${applicationNumber}_${storageFieldName}.${ext}`;
+      
+      const { data: uploadData, error: uploadErr } = await supabaseServer
+        .storage
+        .from('documents')
+        .upload(newName, file, { upsert: true });
+
+      if (!uploadErr && uploadData) {
+         uploadedFiles.push({
+           field_name: storageFieldName,
+           file_url: uploadData.path
+         });
+      }
+    }
+
+    // Insert Application
+    const { data: appData, error: appErr } = await supabaseServer
+      .from('applications')
+      .insert({
+        position_id: positionId,
+        candidate_name: fullName,
+        candidate_email: email,
+        candidate_phone: phone,
+        application_number: applicationNumber,
+        status: 'Applied',
+        dynamic_responses_json: dynamicResponses
+      })
+      .select()
+      .single();
+
+    if (appErr) throw appErr;
+
+    // Insert File References
+    if (uploadedFiles.length > 0) {
+      const fileInserts = uploadedFiles.map(f => ({
+         application_id: appData.id,
+         field_name: f.field_name,
+         file_url: f.file_url
+      }));
+      await supabaseServer.from('application_files').insert(fileInserts);
+    }
+
+    // Insert initial status log
+    await supabaseServer.from('application_status_logs').insert({
+       application_id: appData.id,
+       status: 'Applied'
+    });
+
+    // We can handle HTML PDF/Email in a background worker or await here later.
+
+    return NextResponse.json({ success: true, applicationNumber });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

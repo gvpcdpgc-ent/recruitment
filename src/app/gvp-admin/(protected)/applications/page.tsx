@@ -1,0 +1,80 @@
+import Link from 'next/link';
+import { supabaseServer } from '@/lib/supabase/server';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Eye, Download } from 'lucide-react';
+
+export const revalidate = 0;
+
+export default async function AdminApplicationsPage() {
+  const { data: applications } = await supabaseServer
+    .from('applications')
+    .select(`
+       *,
+       positions(title)
+    `)
+    .order('applied_at', { ascending: false });
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">Applications Tracker</h2>
+        <Button variant="outline">
+          <Download className="mr-2 h-4 w-4" /> Export All to Excel
+        </Button>
+      </div>
+
+      <div className="rounded-xl border bg-card shadow">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-muted/50 text-muted-foreground uppercase text-xs">
+               <tr>
+                  <th className="px-6 py-4 font-medium">App Number</th>
+                  <th className="px-6 py-4 font-medium">Candidate</th>
+                  <th className="px-6 py-4 font-medium">Position</th>
+                  <th className="px-6 py-4 font-medium">Status</th>
+                  <th className="px-6 py-4 font-medium">Applied At</th>
+                  <th className="px-6 py-4 font-medium text-right">Actions</th>
+               </tr>
+            </thead>
+            <tbody className="divide-y relative">
+               {applications && applications.map(app => {
+                  const posTitle = Array.isArray(app.positions) ? (app.positions[0] as any)?.title : (app.positions as any)?.title;
+                  const applied = new Date(app.applied_at).toLocaleDateString();
+                  return (
+                     <tr key={app.id} className="hover:bg-muted/30">
+                       <td className="px-6 py-4 font-mono font-medium text-xs">{app.application_number}</td>
+                       <td className="px-6 py-4">
+                          <div className="font-semibold text-foreground">{app.candidate_name}</div>
+                          <div className="text-muted-foreground text-xs">{app.candidate_email}</div>
+                          <div className="text-muted-foreground text-xs">{app.candidate_phone}</div>
+                       </td>
+                       <td className="px-6 py-4">{posTitle || 'Unknown'}</td>
+                       <td className="px-6 py-4">
+                         <Badge variant="secondary">
+                           {app.status}
+                         </Badge>
+                       </td>
+                       <td className="px-6 py-4 whitespace-nowrap">{applied}</td>
+                       <td className="px-6 py-4 text-right">
+                         <Link href={`/gvp-admin/applications/${app.id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                           <Eye className="h-4 w-4 mr-2" /> View
+                         </Link>
+                       </td>
+                     </tr>
+                  )
+               })}
+               {(!applications || applications.length === 0) && (
+                  <tr>
+                     <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
+                        No applications found.
+                     </td>
+                  </tr>
+               )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
