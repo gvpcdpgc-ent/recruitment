@@ -34,29 +34,25 @@ export async function POST(request: Request) {
       }
     }
 
-    // Generate App Number: e.g. DEPT-FAC-YYYYMM-001
-    // We will do a simple prefix based on position's department
+    // Generate App Number: e.g. {PREFIX}-YYYYMM-{COUNTER}
     const { data: posData } = await supabaseServer
       .from('positions')
-      .select('departments(name)')
+      .select('app_prefix, next_counter')
       .eq('id', positionId)
       .single();
 
-    let prefix = 'GEN';
-    const dept = posData?.departments as any;
-    if (dept && !Array.isArray(dept) && dept.name) {
-      prefix = dept.name.substring(0, 3).toUpperCase();
-    }
+    const prefix = posData?.app_prefix || 'GEN';
+    const counter = posData?.next_counter || 1;
     
     const dateStr = new Date().toISOString().replace(/-/g, '').substring(0, 6); // YYYYMM
-    
-    // Get count for sequence
-    const { count } = await supabaseServer
-      .from('applications')
-      .select('*', { count: 'exact', head: true });
-      
-    const seq = ((count || 0) + 1).toString().padStart(3, '0');
-    const applicationNumber = `${prefix}-FAC-${dateStr}-${seq}`;
+    const seq = String(counter).padStart(3, '0');
+    const applicationNumber = `${prefix}-${dateStr}-${seq}`;
+
+    // Increment next_counter in positions
+    await supabaseServer
+      .from('positions')
+      .update({ next_counter: counter + 1 })
+      .eq('id', positionId);
 
     // Upload Files
     const fileEntries = Array.from(formData.entries()).filter(([key, val]) => val instanceof Blob);

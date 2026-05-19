@@ -13,7 +13,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
        instructions, 
        deadline, 
        status, 
-       dynamicFields 
+       dynamicFields,
+       app_prefix,
+       next_counter
     } = body;
 
     const { error } = await supabaseServer
@@ -26,6 +28,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
          instructions,
          deadline,
          status,
+         app_prefix,
+         next_counter,
          dynamic_form_schema: dynamicFields,
       })
       .eq("id", resolvedParams.id);

@@ -17,7 +17,9 @@ export async function POST(request: Request) {
        instructions, 
        deadline, 
        status, 
-       dynamicFields 
+       dynamicFields,
+       app_prefix,
+       next_counter
     } = await request.json();
 
     if (!title || !status) {
@@ -34,7 +36,9 @@ export async function POST(request: Request) {
          qualifications,
          instructions,
          deadline: deadline || null,
-         status
+         status,
+         app_prefix,
+         next_counter: next_counter || 1
       })
       .select()
       .single();

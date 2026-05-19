@@ -38,6 +38,8 @@ export function PositionFormBuilder({ departments, initialData = null }: { depar
   };
   const [deadline, setDeadline] = useState(getInitialDeadline());
   const [status, setStatus] = useState(initialData?.status || "hidden");
+  const [appPrefix, setAppPrefix] = useState(initialData?.app_prefix || "");
+  const [initialCounter, setInitialCounter] = useState(initialData?.next_counter || 1);
 
   // Dynamic Form Builder State
   const [fields, setFields] = useState<FormField[]>(initialData?.dynamic_form_schema || []);
@@ -92,6 +94,8 @@ export function PositionFormBuilder({ departments, initialData = null }: { depar
             instructions,
             deadline: deadline ? new Date(deadline + "+05:30").toISOString() : null,
             status,
+            app_prefix: appPrefix,
+            next_counter: parseInt(String(initialCounter)) || 1,
             dynamicFields: fields
          })
       });
@@ -161,22 +165,35 @@ export function PositionFormBuilder({ departments, initialData = null }: { depar
                </Select>
             </div>
          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-primary/5 rounded-lg border border-primary/10">
+             <div className="space-y-2">
+                <Label>App Number Prefix <span className="text-destructive">*</span></Label>
+                <Input value={appPrefix} onChange={(e) => setAppPrefix(e.target.value.toUpperCase())} placeholder="e.g. CSE-FAC" />
+                <p className="text-[10px] text-muted-foreground uppercase">e.g. {appPrefix || 'PREFIX'}-202605-001</p>
+             </div>
+             <div className="space-y-2">
+                <Label>Start Counter From</Label>
+                <Input type="number" value={initialCounter} onChange={(e) => setInitialCounter(parseInt(e.target.value) || 1)} min="1" />
+                <p className="text-[10px] text-muted-foreground">Next application will use this number</p>
+             </div>
+          </div>
 
-         <div className="space-y-2">
+          <div className="space-y-2">
             <Label>Description</Label>
             <Textarea className="h-32" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="HTML allowed" />
-         </div>
+          </div>
 
-         <div className="space-y-2">
+          <div className="space-y-2">
             <Label>Qualifications</Label>
             <Textarea className="h-32" value={qualifications} onChange={(e) => setQualifications(e.target.value)} placeholder="HTML allowed" />
-         </div>
-         
-         <div className="space-y-2">
+          </div>
+          
+          <div className="space-y-2">
             <Label>Specific Instructions</Label>
             <Textarea className="h-24" value={instructions} onChange={(e) => setInstructions(e.target.value)} placeholder="HTML allowed" />
-         </div>
-      </div>
+          </div>
+        </div>
 
        {/* Submit Button Block for Mobile */}
        <div className="flex justify-end gap-4 lg:hidden">

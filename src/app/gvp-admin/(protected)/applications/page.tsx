@@ -4,6 +4,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Download } from 'lucide-react';
 import { PhotoPreview } from '@/components/admin/PhotoPreview';
+import { DeleteApplicationButton } from '@/components/admin/DeleteApplicationButton';
 
 export const revalidate = 0;
 
@@ -66,10 +67,11 @@ export default async function AdminApplicationsPage() {
                          </Badge>
                        </td>
                        <td className="px-6 py-4 whitespace-nowrap">{applied}</td>
-                       <td className="px-6 py-4 text-right">
+                       <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
                          <Link href={`/gvp-admin/applications/${app.id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
                            <Eye className="h-4 w-4 mr-2" /> View
                          </Link>
+                         <DeleteApplicationButton id={app.id} name={app.candidate_name} />
                        </td>
                      </tr>
                   )
