@@ -158,19 +158,19 @@ export function ApplicationWizard({ positionId, positionTitle, formSchemaJson = 
           <form onSubmit={handleSubmit(onStep1Submit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="fullName">Full Name <span className="text-destructive">*</span></Label>
-              <Input id="fullName" {...register("fullName")} placeholder="John Doe" />
+              <Input id="fullName" {...register("fullName")} placeholder="" />
               {errors.fullName && <p className="text-xs text-destructive">{errors.fullName.message}</p>}
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="email">Email Address <span className="text-destructive">*</span></Label>
-              <Input id="email" type="email" {...register("email")} placeholder="john@example.com" />
+              <Input id="email" type="email" {...register("email")} placeholder="" />
               {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="phone">Phone Number <span className="text-destructive">*</span></Label>
-              <Input id="phone" type="tel" {...register("phone")} placeholder="+1 234 567 8900" />
+              <Input id="phone" type="tel" {...register("phone")} placeholder="" />
               {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
             </div>
             

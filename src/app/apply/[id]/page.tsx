@@ -35,7 +35,7 @@ export default async function ApplyPage({ params }: { params: { id: string } }) 
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-12 flex-1">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[30%_1fr] gap-10 items-start">
         
         {/* LEFT: Job details */}
         <div className="space-y-8">
