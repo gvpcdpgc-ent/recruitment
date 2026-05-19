@@ -28,7 +28,6 @@ export default function AdminLogin() {
       if (res.ok && data.success) {
         toast.success("Login successful");
         router.push("/gvp-admin");
-        router.refresh();
       } else {
         toast.error(data.error || "Login failed");
       }
