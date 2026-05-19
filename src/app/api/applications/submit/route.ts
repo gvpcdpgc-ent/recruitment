@@ -19,6 +19,21 @@ export async function POST(request: Request) {
 
     const dynamicResponses = dynamicResponsesStr ? JSON.parse(dynamicResponsesStr) : {};
 
+    // Handle photo upload to public bucket
+    let photoUrl: string | null = null;
+    const photoFile = formData.get('photo') as File | null;
+    if (photoFile && photoFile instanceof Blob && photoFile.size > 0) {
+      const ext = photoFile.name?.split('.').pop() || 'jpg';
+      const photoName = `${email.replace(/[@.]/g, '_')}_${Date.now()}.${ext}`;
+      const { data: photoData, error: photoErr } = await supabaseServer.storage
+        .from('photos')
+        .upload(photoName, photoFile, { upsert: true });
+      if (!photoErr && photoData) {
+        const { data: urlData } = supabaseServer.storage.from('photos').getPublicUrl(photoData.path);
+        photoUrl = urlData.publicUrl;
+      }
+    }
+
     // Generate App Number: e.g. DEPT-FAC-YYYYMM-001
     // We will do a simple prefix based on position's department
     const { data: posData } = await supabaseServer
@@ -76,7 +91,8 @@ export async function POST(request: Request) {
         candidate_phone: phone,
         application_number: applicationNumber,
         status: 'Applied',
-        dynamic_responses_json: dynamicResponses
+        dynamic_responses_json: dynamicResponses,
+        photo_url: photoUrl
       })
       .select()
       .single();

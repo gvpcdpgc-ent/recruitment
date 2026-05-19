@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,6 +36,8 @@ export function ApplicationWizard({ positionId, positionTitle, formSchemaJson = 
   const [filesData, setFilesData] = useState<Record<string, File>>({});
   
   const [isFinalSubmitting, setIsFinalSubmitting] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Step1Data>({
     resolver: zodResolver(step1Schema),
@@ -99,6 +101,7 @@ export function ApplicationWizard({ positionId, positionTitle, formSchemaJson = 
       formData.append("email", candidateData!.email);
       formData.append("phone", candidateData!.phone);
       formData.append("dynamicResponses", JSON.stringify(dynamicResponses));
+      if (photoFile) formData.append("photo", photoFile);
 
       Object.entries(filesData).forEach(([key, file]) => {
         formData.append(`file_${key}`, file);
@@ -173,9 +176,35 @@ export function ApplicationWizard({ positionId, positionTitle, formSchemaJson = 
               <Input id="phone" type="tel" {...register("phone")} placeholder="" />
               {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="photo">Passport Photo <span className="text-destructive">*</span></Label>
+              <div className="flex items-start gap-4">
+                {photoPreview && (
+                  <div className="flex-shrink-0">
+                    <img src={photoPreview} alt="preview" className="w-20 h-24 object-cover rounded-md border shadow-sm" />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <Input
+                    id="photo"
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 2 * 1024 * 1024) { toast.error("Photo must be under 2MB"); e.target.value = ''; return; }
+                      setPhotoFile(file);
+                      setPhotoPreview(URL.createObjectURL(file));
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">JPG/PNG only. Max 2MB.</p>
+                </div>
+              </div>
+            </div>
             
             <div className="pt-4 flex justify-end">
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting || !photoFile}>
                 {isSubmitting ? "Verifying..." : "Continue"}
               </Button>
             </div>
@@ -301,9 +330,14 @@ export function ApplicationWizard({ positionId, positionTitle, formSchemaJson = 
           <div className="bg-muted/30 border p-6 rounded-xl space-y-6 text-sm">
             <div className="space-y-1 pb-4 border-b">
               <h4 className="font-bold text-foreground/80 tracking-wider uppercase text-xs mb-2">Basic Details</h4>
-              <p><span className="font-semibold">Name:</span> {candidateData?.fullName}</p>
-              <p><span className="font-semibold">Email:</span> {candidateData?.email}</p>
-              <p><span className="font-semibold">Phone:</span> {candidateData?.phone}</p>
+              <div className="flex items-start gap-4">
+                {photoPreview && <img src={photoPreview} alt="photo" className="w-16 h-20 object-cover rounded border flex-shrink-0" />}
+                <div>
+                  <p><span className="font-semibold">Name:</span> {candidateData?.fullName}</p>
+                  <p><span className="font-semibold">Email:</span> {candidateData?.email}</p>
+                  <p><span className="font-semibold">Phone:</span> {candidateData?.phone}</p>
+                </div>
+              </div>
             </div>
             
             <div className="space-y-1 pb-4 border-b">

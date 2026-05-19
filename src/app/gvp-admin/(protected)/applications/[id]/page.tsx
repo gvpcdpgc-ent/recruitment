@@ -59,11 +59,22 @@ export default async function ApplicationDetailsPage(props: { params: Promise<{ 
         <div className="lg:col-span-2 space-y-6">
            <div className="bg-card border rounded-xl p-6 shadow-sm space-y-4">
               <h3 className="font-semibold text-lg border-b pb-2">Basic Information</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                 <div><span className="text-muted-foreground mr-2">Name:</span><span className="font-medium text-foreground">{application.candidate_name}</span></div>
-                 <div><span className="text-muted-foreground mr-2">Email:</span><span className="font-medium text-foreground">{application.candidate_email}</span></div>
-                 <div><span className="text-muted-foreground mr-2">Phone:</span><span className="font-medium text-foreground">{application.candidate_phone}</span></div>
-                 <div><span className="text-muted-foreground mr-2">Applied:</span><span className="font-medium text-foreground">{new Date(application.applied_at).toLocaleString()}</span></div>
+              <div className="flex items-start gap-6">
+                {(application as any).photo_url && (
+                  <div className="flex-shrink-0">
+                    <img
+                      src={(application as any).photo_url}
+                      alt={application.candidate_name}
+                      className="w-24 h-28 object-cover rounded-lg border shadow-sm"
+                    />
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-4 text-sm flex-1">
+                   <div><span className="text-muted-foreground mr-2">Name:</span><span className="font-medium text-foreground">{application.candidate_name}</span></div>
+                   <div><span className="text-muted-foreground mr-2">Email:</span><span className="font-medium text-foreground">{application.candidate_email}</span></div>
+                   <div><span className="text-muted-foreground mr-2">Phone:</span><span className="font-medium text-foreground">{application.candidate_phone}</span></div>
+                   <div><span className="text-muted-foreground mr-2">Applied:</span><span className="font-medium text-foreground">{new Date(application.applied_at).toLocaleString()}</span></div>
+                </div>
               </div>
            </div>
 
