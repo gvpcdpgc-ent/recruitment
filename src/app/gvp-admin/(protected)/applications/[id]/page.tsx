@@ -15,7 +15,7 @@ export default async function ApplicationDetailsPage(props: { params: Promise<{ 
     .from("applications")
     .select(`
       *,
-      positions (title, departments(name), dynamic_form_schema),
+      positions (id, title, departments(name)),
       application_files (field_name, file_url)
     `)
     .eq("id", id)
@@ -28,10 +28,17 @@ export default async function ApplicationDetailsPage(props: { params: Promise<{ 
   const posData = Array.isArray(application.positions) ? application.positions[0] as any : application.positions as any;
   const posTitle = posData?.title;
 
-  // Build a map from field_id -> label using the dynamic form schema
-  const formSchema: any[] = posData?.dynamic_form_schema || [];
-  const fieldLabelMap: Record<string, string> = {};
-  formSchema.forEach((f: any) => { fieldLabelMap[f.id] = f.label; });
+  // Fetch the dynamic form schema separately from position_forms
+  let fieldLabelMap: Record<string, string> = {};
+  if (posData?.id) {
+    const { data: posForm } = await supabaseServer
+      .from("position_forms")
+      .select("schema_json")
+      .eq("position_id", posData.id)
+      .maybeSingle();
+    const formSchema: any[] = posForm?.schema_json || [];
+    formSchema.forEach((f: any) => { fieldLabelMap[f.id] = f.label; });
+  }
   
   return (
     <div className="space-y-6 max-w-6xl mx-auto w-full">
