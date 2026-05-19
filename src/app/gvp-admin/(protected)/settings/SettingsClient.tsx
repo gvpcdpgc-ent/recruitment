@@ -23,6 +23,7 @@ export function SettingsClient({ initialDepartments, initialBranding }: { initia
   const [departments, setDepartments] = useState<any[]>(initialDepartments);
   const [newDeptName, setNewDeptName] = useState("");
   const [isSavingDept, setIsSavingDept] = useState(false);
+  const [departmentToDelete, setDepartmentToDelete] = useState<string | null>(null);
 
   const handleSaveBranding = async () => {
     setIsSavingBranding(true);
@@ -71,7 +72,6 @@ export function SettingsClient({ initialDepartments, initialBranding }: { initia
   };
 
   const handleDeleteDepartment = async (id: string) => {
-     if (!confirm("Are you sure? Positions linked to this department might lose their label if strict relations exist.")) return;
      try {
        const res = await fetch(`/api/admin/departments/${id}`, { method: "DELETE" });
        if (res.ok) {
@@ -134,7 +134,7 @@ export function SettingsClient({ initialDepartments, initialBranding }: { initia
                departments.map(dept => (
                  <div key={dept.id} className="p-4 flex items-center justify-between hover:bg-muted/30">
                    <span className="font-medium">{dept.name}</span>
-                   <Button variant="ghost" size="icon" onClick={() => handleDeleteDepartment(dept.id)}>
+                   <Button variant="ghost" size="icon" onClick={() => setDepartmentToDelete(dept.id)}>
                       <Trash2 className="w-4 h-4 text-destructive" />
                    </Button>
                  </div>
@@ -143,6 +143,27 @@ export function SettingsClient({ initialDepartments, initialBranding }: { initia
           </div>
         </div>
       </TabsContent>
+
+      {/* Delete Confirmation Modal Overlay */}
+      {departmentToDelete && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border shadow-lg rounded-xl p-6 max-w-md w-full animate-in fade-in zoom-in-95">
+            <h3 className="text-lg font-bold">Are you sure?</h3>
+            <p className="text-muted-foreground mt-2 mb-6">
+              Positions linked to this department might lose their label if strict relations exist. This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3 filter-none">
+              <Button variant="outline" onClick={() => setDepartmentToDelete(null)}>Cancel</Button>
+              <Button variant="destructive" onClick={() => {
+                handleDeleteDepartment(departmentToDelete);
+                setDepartmentToDelete(null);
+              }}>
+                Delete Department
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </Tabs>
   );
 }

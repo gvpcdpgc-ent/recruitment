@@ -1,12 +1,12 @@
 import Link from 'next/link';
 
-export function Footer() {
+export function Footer({ instituteName = "Global University", footerText }: { instituteName?: string; footerText?: string }) {
   return (
     <footer className="border-t bg-card mt-auto">
       <div className="container mx-auto flex flex-col md:flex-row items-center justify-between py-8 px-4 md:px-6 gap-4">
         <div className="text-center md:text-left">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Global University. All rights reserved.
+            {footerText ? footerText : `© ${new Date().getFullYear()} ${instituteName}. All rights reserved.`}
           </p>
         </div>
         <div className="flex gap-4">

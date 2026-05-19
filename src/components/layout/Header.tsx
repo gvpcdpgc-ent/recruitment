@@ -2,13 +2,13 @@ import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export function Header() {
+export function Header({ instituteName = "Global University" }: { instituteName?: string }) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2">
           { /* Future dynamic logo can go here */ }
-          <span className="text-xl font-bold tracking-tight text-primary">Global University</span>
+          <span className="text-xl font-bold tracking-tight text-primary whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px] md:max-w-md">{instituteName}</span>
         </Link>
         <nav className="flex items-center gap-6">
           <Link href="/" className="text-sm font-medium transition-colors hover:text-primary">

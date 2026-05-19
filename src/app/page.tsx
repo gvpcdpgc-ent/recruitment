@@ -19,6 +19,9 @@ export default async function Home() {
     .order("created_at", { ascending: false })
     .limit(3);
 
+  const { data: brandings } = await supabaseServer.from("branding_settings").select("institute_name").limit(1);
+  const instituteName = brandings && brandings.length > 0 && brandings[0].institute_name ? brandings[0].institute_name : "Global University";
+
   return (
     <div className="flex-col flex items-center w-full">
       {/* Hero Section */}
@@ -29,7 +32,7 @@ export default async function Home() {
               Join Our World-Class Faculty
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-              Global University is actively seeking passionate educators and researchers 
+              {instituteName} is actively seeking passionate educators and researchers 
               to shape the future. Discover open positions and apply today.
             </p>
           </div>
