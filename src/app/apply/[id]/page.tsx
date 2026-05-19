@@ -35,10 +35,10 @@ export default async function ApplyPage({ params }: { params: { id: string } }) 
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-12 flex-1">
-      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
         
-        {/* Left side details */}
-        <div className="md:col-span-1 space-y-8">
+        {/* LEFT: Job details */}
+        <div className="space-y-8">
           <div>
             <div className="text-sm font-semibold uppercase tracking-wider text-primary mb-2">
               {deptName || "General"}
@@ -52,53 +52,51 @@ export default async function ApplyPage({ params }: { params: { id: string } }) 
               </span>
             )}
           </div>
-          
-          <div className="space-y-4 text-sm text-muted-foreground">
+
+          <div className="flex gap-8 text-sm text-muted-foreground border-b pb-6">
             <div className="flex flex-col">
-              <span className="font-semibold text-foreground">Status</span> 
+              <span className="font-semibold text-foreground mb-1">Status</span>
               {position.status === 'open' ? 'Open' : 'Closed'}
             </div>
             <div className="flex flex-col">
-              <span className="font-semibold text-foreground">Deadline</span>
+              <span className="font-semibold text-foreground mb-1">Deadline</span>
               {dl}
             </div>
           </div>
-        </div>
 
-        {/* Right side body text & Form */}
-        <div className="md:col-span-2 space-y-10">
-          <div className="prose prose-slate max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-li:text-muted-foreground">
+          <div className="prose prose-slate max-w-none prose-headings:text-foreground prose-p:text-muted-foreground space-y-8">
             {position.description && (
-              <>
-                <h3 className="text-xl font-semibold mb-2">Description</h3>
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Description</h3>
                 <div dangerouslySetInnerHTML={{ __html: position.description }} />
-              </>
+              </div>
             )}
-            
             {position.qualifications && (
-              <div className="mt-8">
-                <h3 className="text-xl font-semibold mb-2">Qualifications</h3>
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Qualifications</h3>
                 <div dangerouslySetInnerHTML={{ __html: position.qualifications }} />
               </div>
             )}
-            
             {position.instructions && (
-              <div className="mt-8">
-                <h3 className="text-xl font-semibold mb-2">Instructions</h3>
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Instructions</h3>
                 <div dangerouslySetInnerHTML={{ __html: position.instructions }} />
               </div>
             )}
           </div>
+        </div>
 
-          <div className="bg-card p-6 md:p-8 rounded-2xl border shadow-sm mt-10">
-             {isClosed ? (
-               <div className="text-center py-6">
-                 <h4 className="font-semibold text-xl">Applications are closed.</h4>
-                 <p className="text-muted-foreground mt-2">We are no longer accepting applications for this position.</p>
-               </div>
-             ) : (
-                <ApplicationWizard positionId={position.id} positionTitle={position.title} formSchemaJson={formSchemaJson} />
-             )}
+        {/* RIGHT: Sticky application form */}
+        <div className="lg:sticky lg:top-20">
+          <div className="bg-card p-6 md:p-8 rounded-2xl border shadow-sm">
+            {isClosed ? (
+              <div className="text-center py-6">
+                <h4 className="font-semibold text-xl">Applications are closed.</h4>
+                <p className="text-muted-foreground mt-2">We are no longer accepting applications for this position.</p>
+              </div>
+            ) : (
+              <ApplicationWizard positionId={position.id} positionTitle={position.title} formSchemaJson={formSchemaJson} />
+            )}
           </div>
         </div>
 
