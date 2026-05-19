@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
+import { sendMail, buildConfirmationEmail } from '@/lib/email';
 
 export async function POST(request: Request) {
   try {
@@ -98,7 +99,24 @@ export async function POST(request: Request) {
        status: 'Applied'
     });
 
-    // We can handle HTML PDF/Email in a background worker or await here later.
+    // Fetch branding for email
+    const { data: brandings } = await supabaseServer.from('branding_settings').select('institute_name').limit(1);
+    const instituteName = brandings && brandings.length > 0 ? brandings[0].institute_name : 'Faculty Recruitment Cell';
+
+    // Fetch position title
+    const { data: positionData } = await supabaseServer.from('positions').select('title').eq('id', positionId).single();
+
+    // Send confirmation email (non-blocking — we don't fail the request if email fails)
+    sendMail({
+      to: email,
+      subject: `Application Received: ${positionData?.title || 'Faculty Position'} — ${applicationNumber}`,
+      html: buildConfirmationEmail({
+        candidateName: fullName,
+        positionTitle: positionData?.title || 'Faculty Position',
+        applicationNumber,
+        instituteName,
+      }),
+    }).catch(err => console.error('Email send failed:', err));
 
     return NextResponse.json({ success: true, applicationNumber });
   } catch (error: any) {

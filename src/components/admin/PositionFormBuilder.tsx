@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2, Hand } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 
 interface FormField {
    id: string;
@@ -21,26 +21,31 @@ interface FormField {
 
 const FIELD_TYPES = ['Text', 'Email', 'Number', 'Textarea', 'Dropdown', 'File Upload'];
 
-export function PositionFormBuilder({ departments }: { departments: any[] }) {
+export function PositionFormBuilder({ departments, initialData = null }: { departments: any[], initialData?: any }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   // Basic Position State
-  const [title, setTitle] = useState("");
-  const [departmentId, setDepartmentId] = useState("");
-  const [description, setDescription] = useState("");
-  const [qualifications, setQualifications] = useState("");
-  const [instructions, setInstructions] = useState("");
-  const [deadline, setDeadline] = useState("");
-  const [status, setStatus] = useState("hidden");
+  const [title, setTitle] = useState(initialData?.title || "");
+  const [departmentId, setDepartmentId] = useState(initialData?.department_id || "");
+  const [description, setDescription] = useState(initialData?.description || "");
+  const [qualifications, setQualifications] = useState(initialData?.qualifications || "");
+  const [instructions, setInstructions] = useState(initialData?.instructions || "");
+  
+  const getInitialDeadline = () => {
+    if (!initialData?.deadline) return "";
+    return new Date(initialData.deadline).toISOString().slice(0, 16);
+  };
+  const [deadline, setDeadline] = useState(getInitialDeadline());
+  const [status, setStatus] = useState(initialData?.status || "hidden");
 
   // Dynamic Form Builder State
-  const [fields, setFields] = useState<FormField[]>([]);
+  const [fields, setFields] = useState<FormField[]>(initialData?.dynamic_form_schema || []);
 
   const addField = () => {
     setFields([...fields, { 
       id: `field_${Date.now()}`, 
-      label: "New Field", 
+      label: "", 
       type: "Text", 
       required: false,
       options: []
@@ -73,8 +78,11 @@ export function PositionFormBuilder({ departments }: { departments: any[] }) {
 
     setIsLoading(true);
     try {
-      const res = await fetch("/api/admin/positions", {
-         method: "POST",
+      const url = initialData?.id ? `/api/admin/positions/${initialData.id}` : "/api/admin/positions";
+      const method = initialData?.id ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+         method,
          headers: { "Content-Type": "application/json" },
          body: JSON.stringify({
             title,
@@ -90,7 +98,7 @@ export function PositionFormBuilder({ departments }: { departments: any[] }) {
 
       const data = await res.json();
       if (res.ok && data.success) {
-         toast.success("Position created successfully!");
+         toast.success(`Position ${initialData?.id ? 'updated' : 'created'} successfully!`);
          router.push("/gvp-admin/positions");
          router.refresh();
       } else {
@@ -105,10 +113,11 @@ export function PositionFormBuilder({ departments }: { departments: any[] }) {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Basic Settings */}
-      <div className="bg-card border rounded-xl p-6 shadow-sm space-y-6">
-         <h3 className="text-xl font-bold border-b pb-4">Basic Information</h3>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* Left Column: Basic Settings & HTML content */}
+      <div className="col-span-1 lg:col-span-8 space-y-8">
+        <div className="bg-card border rounded-xl p-6 shadow-sm space-y-6">
+           <h3 className="text-xl font-bold border-b pb-4">Basic Information</h3>
          
          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
@@ -119,7 +128,9 @@ export function PositionFormBuilder({ departments }: { departments: any[] }) {
                <Label>Department</Label>
                <Select value={departmentId} onValueChange={val => setDepartmentId(val || '')}>
                   <SelectTrigger>
-                     <SelectValue placeholder="Select Department..." />
+                     <SelectValue placeholder="Select Department...">
+                        {departments.find(d => d.id === departmentId)?.name || 'Select Department...'}
+                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                      {departments.map(d => (
@@ -138,7 +149,9 @@ export function PositionFormBuilder({ departments }: { departments: any[] }) {
                <Label>Initial Status</Label>
                <Select value={status} onValueChange={val => setStatus(val || 'hidden')}>
                   <SelectTrigger>
-                     <SelectValue />
+                     <SelectValue>
+                        {status === 'open' ? 'Open (Publicly Visible)' : status === 'closed' ? 'Closed (Visible but Closed)' : 'Hidden (Completely Invisible)'}
+                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                      <SelectItem value="open">Open (Publicly Visible)</SelectItem>
@@ -165,76 +178,80 @@ export function PositionFormBuilder({ departments }: { departments: any[] }) {
          </div>
       </div>
 
-      {/* Dynamic Form Builder */}
-      <div className="bg-card border rounded-xl p-6 shadow-sm space-y-6">
-         <div className="flex items-center justify-between border-b pb-4">
-            <div>
-               <h3 className="text-xl font-bold">Dynamic Application Form</h3>
-               <p className="text-sm text-muted-foreground mt-1">Configure fields candidates must fill out.</p>
-            </div>
-            <Button onClick={addField} size="sm"><Plus className="h-4 w-4 mr-2" /> Add Field</Button>
-         </div>
+       {/* Submit Button Block for Mobile */}
+       <div className="flex justify-end gap-4 lg:hidden">
+          <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
+          <Button onClick={handleSave} disabled={isLoading}>
+             {isLoading ? "Saving..." : "Save Position"}
+          </Button>
+       </div>
+      </div>
 
-         <div className="space-y-4">
-            {fields.map((field, index) => (
-               <div key={field.id} className="p-4 border rounded-lg bg-muted/20 flex gap-4 items-start">
-                  <div className="mt-2 text-muted-foreground cursor-grab">
-                     <Hand className="h-5 w-5" />
-                  </div>
-                  
-                  <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4">
-                     <div className="col-span-4 space-y-2">
-                        <Label>Field Label</Label>
-                        <Input value={field.label} onChange={(e) => updateField(field.id, 'label', e.target.value)} />
-                     </div>
-                     <div className="col-span-4 space-y-2">
-                        <Label>Type</Label>
-                        <Select value={field.type} onValueChange={(val) => updateField(field.id, 'type', val)}>
-                           <SelectTrigger><SelectValue /></SelectTrigger>
-                           <SelectContent>
-                              {FIELD_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                           </SelectContent>
-                        </Select>
-                     </div>
-                     <div className="col-span-2 space-y-2 flex flex-col justify-center mt-6">
-                         <div className="flex items-center space-x-2">
-                           <Checkbox id={`req-${field.id}`} checked={field.required} onCheckedChange={(c) => updateField(field.id, 'required', !!c)} />
-                           <label htmlFor={`req-${field.id}`} className="text-sm font-medium">Required</label>
+       {/* Right Column: Submit Actions Desktop & Dropdown for Dynamic Fields */}
+       <div className="col-span-1 lg:col-span-4 flex flex-col gap-6">
+          <div className="bg-card border rounded-xl p-6 shadow-sm hidden lg:block space-y-4">
+             <h3 className="text-lg font-bold border-b pb-2 mb-4">Actions</h3>
+             <Button className="w-full" onClick={handleSave} disabled={isLoading}>
+                {isLoading ? "Saving..." : "Save Position"}
+             </Button>
+             <Button variant="outline" className="w-full" onClick={() => router.back()}>Cancel</Button>
+          </div>
+
+          <div className="bg-card border rounded-xl p-6 shadow-sm flex-1">
+             <div className="flex flex-col border-b pb-4 mb-4 gap-2">
+                <h3 className="text-lg font-bold">Dynamic Form</h3>
+                <Button onClick={addField} size="sm" variant="secondary" className="w-full mt-2"><Plus className="h-4 w-4 mr-2" /> Add Field</Button>
+             </div>
+
+             <div className="space-y-4">
+                {fields.map((field, index) => (
+                   <div key={field.id} className="p-4 border rounded-lg bg-muted/10 flex flex-col gap-3 relative">
+                      <div className="flex justify-between items-center mb-1">
+                        <Label className="font-semibold text-primary">Field {index + 1}</Label>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeField(field.id)}><Trash2 className="h-4 w-4" /></Button>
+                      </div>
+                      
+                      <div className="space-y-1">
+                         <Label className="text-xs text-muted-foreground">Field Label</Label>
+                         <Input placeholder="e.g. Full Name" value={field.label} onChange={(e) => updateField(field.id, 'label', e.target.value)} />
+                      </div>
+
+                      <div className="space-y-1">
+                         <Label className="text-xs text-muted-foreground">Type</Label>
+                         <Select value={field.type} onValueChange={(val) => updateField(field.id, 'type', val)}>
+                            <SelectTrigger className="w-full h-9"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                               {FIELD_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                            </SelectContent>
+                         </Select>
+                      </div>
+
+                      <div className="flex items-center space-x-2 pt-1">
+                         <Checkbox id={`req-${field.id}`} checked={field.required} onCheckedChange={(c) => updateField(field.id, 'required', !!c)} />
+                         <label htmlFor={`req-${field.id}`} className="text-sm font-medium">Required Field</label>
+                      </div>
+
+                      {field.type === 'Dropdown' && (
+                         <div className="space-y-1 mt-2">
+                            <Label className="text-xs text-muted-foreground">Options (Comma separated)</Label>
+                            <Input 
+                               value={field.options?.join(', ') || ''} 
+                               onChange={(e) => handleOptionsChange(field.id, e.target.value)} 
+                               placeholder="e.g. Option 1, Option 2" 
+                            />
                          </div>
-                     </div>
-                     <div className="col-span-2 space-y-2 flex items-end justify-end">
-                        <Button variant="destructive" size="icon" onClick={() => removeField(field.id)}><Trash2 className="h-4 w-4" /></Button>
-                     </div>
-
-                     {/* Options for Dropdown */}
-                     {field.type === 'Dropdown' && (
-                        <div className="col-span-12 space-y-2 border-t pt-4 mt-2 border-dashed">
-                           <Label>Dropdown Options (Comma separated)</Label>
-                           <Input 
-                              value={field.options?.join(', ') || ''} 
-                              onChange={(e) => handleOptionsChange(field.id, e.target.value)} 
-                              placeholder="e.g. Option 1, Option 2, Option 3" 
-                           />
-                        </div>
-                     )}
-                  </div>
-               </div>
-            ))}
-            
-            {fields.length === 0 && (
-               <div className="text-center p-8 border-dashed border-2 rounded-xl text-muted-foreground">
-                  No dynamic fields added. Basic Details (Name, Email, Phone) are always collected by default.
-               </div>
-            )}
-         </div>
-      </div>
-
-      <div className="flex justify-end gap-4">
-         <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
-         <Button onClick={handleSave} disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save Position"}
-         </Button>
-      </div>
+                      )}
+                   </div>
+                ))}
+                
+                {fields.length === 0 && (
+                   <div className="text-center p-6 border-dashed border-2 rounded-xl text-muted-foreground text-sm">
+                      No custom fields added. Basic Info is collected natively.
+                   </div>
+                )}
+             </div>
+          </div>
+       </div>
     </div>
   );
 }
