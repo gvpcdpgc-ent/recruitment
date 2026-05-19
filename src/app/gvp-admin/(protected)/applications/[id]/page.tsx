@@ -15,7 +15,7 @@ export default async function ApplicationDetailsPage(props: { params: Promise<{ 
     .from("applications")
     .select(`
       *,
-      positions (title, departments(name)),
+      positions (title, departments(name), dynamic_form_schema),
       application_files (field_name, file_url)
     `)
     .eq("id", id)
@@ -25,7 +25,13 @@ export default async function ApplicationDetailsPage(props: { params: Promise<{ 
     notFound();
   }
 
-  const posTitle = Array.isArray(application.positions) ? (application.positions[0] as any)?.title : (application.positions as any)?.title;
+  const posData = Array.isArray(application.positions) ? application.positions[0] as any : application.positions as any;
+  const posTitle = posData?.title;
+
+  // Build a map from field_id -> label using the dynamic form schema
+  const formSchema: any[] = posData?.dynamic_form_schema || [];
+  const fieldLabelMap: Record<string, string> = {};
+  formSchema.forEach((f: any) => { fieldLabelMap[f.id] = f.label; });
   
   return (
     <div className="space-y-6 max-w-6xl mx-auto w-full">
@@ -57,15 +63,16 @@ export default async function ApplicationDetailsPage(props: { params: Promise<{ 
            <div className="bg-card border rounded-xl p-6 shadow-sm space-y-4">
               <h3 className="font-semibold text-lg border-b pb-2">Application Form Answers</h3>
               <div className="space-y-4 text-sm">
-                 {Object.entries(application.dynamic_responses_json || {}).map(([key, val]) => {
-                    const cleanKey = key.includes('field_') ? 'Custom Field Response' : key;
-                    return (
-                       <div key={key} className="bg-muted/10 p-3 rounded-lg border">
-                          <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wider">{cleanKey}</p>
-                          <p className="font-medium text-foreground">{val as string}</p>
-                       </div>
-                    );
-                 })}
+                  {Object.entries(application.dynamic_responses_json || {}).map(([key, val]) => {
+                     // Look up human-readable label from the position's form schema
+                     const label = fieldLabelMap[key] || key;
+                     return (
+                        <div key={key} className="bg-muted/10 p-3 rounded-lg border">
+                           <p className="text-muted-foreground mb-1 text-xs uppercase tracking-wider">{label}</p>
+                           <p className="font-medium text-foreground">{val as string}</p>
+                        </div>
+                     );
+                  })}
                  {Object.keys(application.dynamic_responses_json || {}).length === 0 && (
                     <p className="text-muted-foreground italic">No dynamic responses found.</p>
                  )}
@@ -84,9 +91,13 @@ export default async function ApplicationDetailsPage(props: { params: Promise<{ 
                              <p className="text-xs text-muted-foreground">Document File</p>
                           </div>
                        </div>
-                       <Link href={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/documents/${file.file_url}`} target="_blank" className={buttonVariants({ variant: "outline", size: "sm" })}>
-                          <Download className="h-4 w-4 mr-2" /> Download
-                       </Link>
+                        <Link 
+                           href={`/api/admin/download?path=${encodeURIComponent(file.file_url)}`} 
+                           target="_blank" 
+                           className={buttonVariants({ variant: "outline", size: "sm" })}
+                        >
+                           <Download className="h-4 w-4 mr-2" /> Download
+                        </Link>
                     </div>
                  ))}
                  {(!application.application_files || application.application_files.length === 0) && (
