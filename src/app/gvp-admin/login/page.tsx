@@ -27,7 +27,7 @@ export default function AdminLogin() {
       const data = await res.json();
       if (res.ok && data.success) {
         toast.success("Login successful");
-        router.push("/gvp-admin");
+        window.location.href = "/gvp-admin";
       } else {
         toast.error(data.error || "Login failed");
       }

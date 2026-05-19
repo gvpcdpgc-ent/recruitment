@@ -52,9 +52,9 @@ export default function ProtectedAdminLayout({ children }: { children: React.Rea
            <NavLinks />
          </div>
          <div className="mt-auto p-4 flex">
-           <Link href="/api/admin/logout" className="flex flex-1 items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground font-medium transition-all hover:text-destructive hover:bg-destructive/10">
+           <a href="/api/admin/logout" className="flex flex-1 items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground font-medium transition-all hover:text-destructive hover:bg-destructive/10">
              <LogOut className="h-4 w-4" /> Logout
-           </Link>
+           </a>
          </div>
        </div>
        
@@ -70,9 +70,9 @@ export default function ProtectedAdminLayout({ children }: { children: React.Rea
                  <NavLinks />
                </div>
                 <div className="mt-auto flex">
-                 <Link href="/api/admin/logout" className="flex flex-1 items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground font-medium transition-all hover:text-destructive hover:bg-destructive/10">
+                 <a href="/api/admin/logout" className="flex flex-1 items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground font-medium transition-all hover:text-destructive hover:bg-destructive/10">
                    <LogOut className="h-4 w-4" /> Logout
-                 </Link>
+                 </a>
                </div>
              </SheetContent>
            </Sheet>
