@@ -120,15 +120,17 @@ export async function POST(request: Request) {
     // Fetch position title
     const { data: positionData } = await supabaseServer.from('positions').select('title').eq('id', positionId).single();
 
-    // Send confirmation email (non-blocking — we don't fail the request if email fails)
+    // Send confirmation email (non-blocking)
     sendMail({
       to: email,
       subject: `Application Received: ${positionData?.title || 'Faculty Position'} — ${applicationNumber}`,
       html: buildConfirmationEmail({
         candidateName: fullName,
+        candidateEmail: email,
+        candidatePhone: phone,
         positionTitle: positionData?.title || 'Faculty Position',
         applicationNumber,
-        instituteName,
+        dynamicResponses: dynamicResponses,
       }),
     }).catch(err => console.error('Email send failed:', err));
 

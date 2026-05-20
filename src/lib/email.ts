@@ -2,27 +2,43 @@ import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false, // Use STARTTLS for port 587
   auth: {
     user: process.env.SMTP_USER || 'careers@gvpcdpgc.edu.in',
     pass: process.env.SMTP_PASS || 'wmar fdao seqh xvwv',
   },
+  tls: {
+    rejectUnauthorized: false // Helps avoid connection issues in some cloud environments
+  }
 });
 
 export const buildConfirmationEmail = ({
   candidateName,
   positionTitle,
   applicationNumber,
-  instituteName
+  candidateEmail,
+  candidatePhone,
+  dynamicResponses = {}
 }: {
   candidateName: string;
   positionTitle: string;
   applicationNumber: string;
-  instituteName: string;
+  candidateEmail: string;
+  candidatePhone: string;
+  dynamicResponses?: any;
 }) => {
   const collegeName = "GAYATRI VIDYA PARISHAD COLLEGE FOR DEGREE AND PG COURSE(A)";
   
+  // Format dynamic responses into a readable summary
+  const summaryEntries = Object.entries(dynamicResponses).map(([key, val]) => {
+    // Basic formatting for the summary table
+    return `<tr>
+      <td style="padding: 8px 0; font-weight: 500; color: #475569; width: 40%; vertical-align: top;">${key}:</td>
+      <td style="padding: 8px 0; color: #1e293b;">${Array.isArray(val) ? val.join(', ') : val}</td>
+    </tr>`;
+  }).join('');
+
   return `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
       <div style="text-align: center; margin-bottom: 24px;">
@@ -37,6 +53,25 @@ export const buildConfirmationEmail = ({
         <p>Your application number is: <strong>${applicationNumber}</strong></p>
         <p style="font-weight: 500; color: #1e40af;">We have successfully received your application.</p>
         
+        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+          <h3 style="font-size: 16px; margin-bottom: 12px; color: #1e40af;">Application Summary</h3>
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr>
+              <td style="padding: 8px 0; font-weight: 500; color: #475569; width: 40%;">Full Name:</td>
+              <td style="padding: 8px 0; color: #1e293b;">${candidateName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: 500; color: #475569;">Email:</td>
+              <td style="padding: 8px 0; color: #1e293b;">${candidateEmail}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: 500; color: #475569;">Phone:</td>
+              <td style="padding: 8px 0; color: #1e293b;">${candidatePhone}</td>
+            </tr>
+            ${summaryEntries}
+          </table>
+        </div>
+
         <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
           <p style="font-size: 14px; color: #64748b; margin: 0;">Our recruitment team will review your application and get back to you shortly.</p>
         </div>
