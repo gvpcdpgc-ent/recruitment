@@ -57,7 +57,7 @@ export async function POST(request: Request) {
 
     // Upload Files
     const fileEntries = Array.from(formData.entries()).filter(([key, val]) => val instanceof Blob);
-    const uploadedFiles = [];
+    const uploadedFiles: { field_name: string; file_url: string }[] = [];
 
     for (const [key, val] of fileEntries) {
       const file = val as File;
@@ -134,27 +134,41 @@ export async function POST(request: Request) {
 
     // Map technical Field IDs (field_xxx) to human-readable Labels
     const mappedResponses: Record<string, any> = {};
+    if (dob) mappedResponses['Date of Birth'] = new Date(dob).toLocaleDateString('en-IN');
+    if (photoUrl) mappedResponses['Photograph'] = 'Uploaded';
+    
     schemaJson.forEach((field: any) => {
-      const value = dynamicResponses[field.id];
+      let value = dynamicResponses[field.id];
+      
+      // If it's a file upload field, the value isn't in dynamicResponses, check uploadedFiles
+      if (value === undefined || value === null) {
+        const fileMatch = uploadedFiles.find(f => f.field_name === field.id);
+        if (fileMatch) value = 'Document Uploaded';
+      }
+
       if (value !== undefined && value !== null) {
         mappedResponses[field.label] = value;
       }
     });
 
-    // Send confirmation email (non-blocking)
-    sendMail({
-      to: email,
-      subject: `GVPCDPGC(A) Recruitment - ${positionTitle}`,
-      html: buildConfirmationEmail({
-        candidateName: fullName,
-        candidateEmail: email,
-        candidatePhone: phone,
-        positionTitle: positionTitle,
-        departmentName: deptName,
-        applicationNumber,
-        dynamicResponses: mappedResponses,
-      }),
-    }).catch(err => console.error('Email send failed:', err));
+    // Send confirmation email (awaited to ensure delivery in serverless environment)
+    try {
+      await sendMail({
+        to: email,
+        subject: `GVPCDPGC(A) Recruitment - ${positionTitle}`,
+        html: buildConfirmationEmail({
+          candidateName: fullName,
+          candidateEmail: email,
+          candidatePhone: phone,
+          positionTitle: positionTitle,
+          departmentName: deptName,
+          applicationNumber,
+          dynamicResponses: mappedResponses,
+        }),
+      });
+    } catch (err) {
+      console.error('Email send failed:', err);
+    }
 
     return NextResponse.json({ success: true, applicationNumber });
   } catch (error: any) {
