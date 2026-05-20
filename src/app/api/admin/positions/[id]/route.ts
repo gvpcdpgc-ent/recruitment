@@ -37,12 +37,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (error) throw error;
 
     // Update or Insert dynamic fields in position_forms
-    await supabaseServer
+    const { error: formError } = await supabaseServer
       .from('position_forms')
       .upsert({
          position_id: resolvedParams.id,
          schema_json: Array.isArray(dynamicFields) ? dynamicFields : []
       }, { onConflict: 'position_id' });
+    
+    if (formError) {
+      console.error('Error updating position form:', formError);
+      throw new Error(`Form update failed: ${formError.message}`);
+    }
     
     return NextResponse.json({ success: true });
   } catch (error: any) {

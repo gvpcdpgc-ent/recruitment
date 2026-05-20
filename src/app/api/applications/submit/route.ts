@@ -144,7 +144,7 @@ export async function POST(request: Request) {
     // Send confirmation email (non-blocking)
     sendMail({
       to: email,
-      subject: `Application Received: ${positionTitle} — ${applicationNumber}`,
+      subject: `GVPCDPGC(A) Recruitment - ${positionTitle}`,
       html: buildConfirmationEmail({
         candidateName: fullName,
         candidateEmail: email,

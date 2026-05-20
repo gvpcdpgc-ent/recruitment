@@ -15,10 +15,13 @@ export default async function EditPositionPage({ params }: { params: Promise<{ i
     notFound();
   }
 
-  // Flatten the schema_json for the component
+  // Handle both array (one-to-many) and object (one-to-one) formats from Supabase
+  const pf = (position as any).position_forms;
+  const positionFormsData = Array.isArray(pf) ? (pf.length > 0 ? pf[0] : null) : pf;
+  
   const initialData = {
     ...position,
-    dynamic_form_schema: (position as any).position_forms?.[0]?.schema_json || []
+    dynamic_form_schema: positionFormsData?.schema_json || []
   };
 
   const { data: departments } = await supabaseServer.from("departments").select("id, name");
