@@ -7,13 +7,19 @@ export default async function EditPositionPage({ params }: { params: Promise<{ i
   
   const { data: position } = await supabaseServer
     .from("positions")
-    .select("*")
+    .select("*, position_forms(schema_json)")
     .eq("id", resolvedParams.id)
     .single();
 
   if (!position) {
     notFound();
   }
+
+  // Flatten the schema_json for the component
+  const initialData = {
+    ...position,
+    dynamic_form_schema: (position as any).position_forms?.[0]?.schema_json || []
+  };
 
   const { data: departments } = await supabaseServer.from("departments").select("id, name");
 
@@ -26,7 +32,7 @@ export default async function EditPositionPage({ params }: { params: Promise<{ i
         </p>
       </div>
 
-      <PositionFormBuilder departments={departments || []} initialData={position} />
+      <PositionFormBuilder departments={departments || []} initialData={initialData} />
     </div>
   );
 }

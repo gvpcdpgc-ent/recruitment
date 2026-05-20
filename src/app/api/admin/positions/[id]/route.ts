@@ -30,11 +30,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
          status,
          app_prefix,
          next_counter,
-         dynamic_form_schema: dynamicFields,
       })
       .eq("id", resolvedParams.id);
 
     if (error) throw error;
+
+    // Update or Insert dynamic fields in position_forms
+    await supabaseServer
+      .from('position_forms')
+      .upsert({
+         position_id: resolvedParams.id,
+         schema_json: Array.isArray(dynamicFields) ? dynamicFields : []
+      }, { onConflict: 'position_id' });
     
     return NextResponse.json({ success: true });
   } catch (error: any) {
