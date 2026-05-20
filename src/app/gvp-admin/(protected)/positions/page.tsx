@@ -3,6 +3,7 @@ import { supabaseServer } from '@/lib/supabase/server';
 import { buttonVariants } from '@/components/ui/button';
 import { PlusCircle, Edit } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { DeletePositionButton } from '@/components/admin/DeletePositionButton';
 
 export const revalidate = 0;
 
@@ -47,10 +48,11 @@ export default async function AdminPositionsPage() {
                          </Badge>
                        </td>
                        <td className="px-6 py-4 whitespace-nowrap">{dl}</td>
-                       <td className="px-6 py-4 text-right">
+                       <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
                          <Link href={`/gvp-admin/positions/${pos.id}/edit`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
                            <Edit className="h-4 w-4 mr-2" /> Edit
                          </Link>
+                         <DeletePositionButton id={pos.id} title={pos.title} />
                        </td>
                      </tr>
                   )
