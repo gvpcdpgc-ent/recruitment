@@ -302,7 +302,7 @@ export function PositionFormBuilder({ departments, initialData = null }: { depar
                                   }
                                }}
                             />
-                            <Button size="icon" variant="primary" className="shrink-0" onClick={() => addOption(field.id)}>
+                            <Button size="icon" variant="default" className="shrink-0" onClick={() => addOption(field.id)}>
                                <Plus className="h-4 w-4" />
                             </Button>
                          </div>
