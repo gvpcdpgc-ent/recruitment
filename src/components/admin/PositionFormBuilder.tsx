@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2, Layout, Settings2, FileText, ListChecks, Sparkles, X } from "lucide-react";
+import { Plus, Trash2, Layout, Settings2, FileText, ListChecks, Sparkles, X, Download } from "lucide-react";
 
 interface FormField {
    id: string;
@@ -41,9 +41,22 @@ export function PositionFormBuilder({ departments, initialData = null }: { depar
   const [appPrefix, setAppPrefix] = useState(initialData?.app_prefix || "");
   const [initialCounter, setInitialCounter] = useState(initialData?.next_counter || 1);
 
-  // Dynamic Form Builder State
   const [fields, setFields] = useState<FormField[]>(initialData?.dynamic_form_schema || []);
   const [newOptionInput, setNewOptionInput] = useState<Record<string, string>>({});
+  
+  // For field cloning
+  const [availablePositions, setAvailablePositions] = useState<{id: string, title: string, schema: any[]}[]>([]);
+  const [selectedPosToImport, setSelectedPosToImport] = useState<string>("");
+
+  useEffect(() => {
+    fetch("/api/admin/positions/forms")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+           setAvailablePositions(data.positions);
+        }
+      });
+  }, []);
 
   const addField = () => {
     setFields([...fields, { 
@@ -101,6 +114,21 @@ export function PositionFormBuilder({ departments, initialData = null }: { depar
       }
       return f;
     }));
+  };
+
+  const handleImportFields = () => {
+    const pos = availablePositions.find(p => p.id === selectedPosToImport);
+    if (!pos || !pos.schema) return;
+    
+    // Add prefix to IDs to avoid collisions
+    const clonedFields = pos.schema.map(f => ({
+       ...f,
+       id: `cloned_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`
+    }));
+
+    setFields([...fields, ...clonedFields]);
+    toast.success(`Imported ${clonedFields.length} fields from ${pos.title}`);
+    setSelectedPosToImport("");
   };
 
   const handleSave = async () => {
@@ -229,7 +257,20 @@ export function PositionFormBuilder({ departments, initialData = null }: { depar
               <ListChecks className="h-5 w-5" />
               <h3 className="text-lg font-bold text-left">Application Custom Questions</h3>
            </div>
-           <div className="flex gap-2">
+           <div className="flex flex-wrap gap-2">
+              <div className="flex gap-2 items-center bg-muted/50 p-1 rounded-md border border-dashed">
+                 <Select value={selectedPosToImport} onValueChange={(val) => setSelectedPosToImport(val || "")}>
+                    <SelectTrigger className="w-[200px] h-8 text-xs"><SelectValue placeholder="Import from Position..." /></SelectTrigger>
+                    <SelectContent>
+                       {availablePositions.filter(p => p.id !== initialData?.id).map(p => (
+                          <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
+                       ))}
+                    </SelectContent>
+                 </Select>
+                 <Button onClick={handleImportFields} variant="ghost" size="sm" className="h-8 text-xs" disabled={!selectedPosToImport}>
+                    <Download className="h-3.5 w-3.5 mr-1" /> Import
+                 </Button>
+              </div>
               <Button onClick={addAcademicPresets} variant="outline" size="sm" className="text-xs border-primary/30 hover:bg-primary/5">
                 <Sparkles className="h-4 w-4 mr-1" /> Presets
               </Button>

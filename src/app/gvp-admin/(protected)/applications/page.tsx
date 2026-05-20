@@ -6,6 +6,8 @@ import { Eye, Download } from 'lucide-react';
 import { PhotoPreview } from '@/components/admin/PhotoPreview';
 import { DeleteApplicationButton } from '@/components/admin/DeleteApplicationButton';
 
+import { ExportExcelButton } from '@/components/admin/ExportExcelButton';
+
 export const revalidate = 0;
 
 export default async function AdminApplicationsPage() {
@@ -21,9 +23,7 @@ export default async function AdminApplicationsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Applications Tracker</h2>
-        <Button variant="outline">
-          <Download className="mr-2 h-4 w-4" /> Export All to Excel
-        </Button>
+        <ExportExcelButton applications={applications || []} />
       </div>
 
       <div className="rounded-xl border bg-card shadow">
