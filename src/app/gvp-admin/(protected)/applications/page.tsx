@@ -15,7 +15,10 @@ export default async function AdminApplicationsPage() {
     .from('applications')
     .select(`
        *,
-       positions(title)
+       positions(
+          title,
+          position_forms(schema_json)
+       )
     `)
     .order('applied_at', { ascending: false });
 

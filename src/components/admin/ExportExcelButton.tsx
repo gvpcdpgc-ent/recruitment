@@ -27,13 +27,23 @@ export function ExportExcelButton({ applications, positionTitle = "All Applicati
            "Phone": app.candidate_phone,
            "DOB": app.candidate_dob || "N/A",
            "Applied At": new Date(app.applied_at).toLocaleString(),
+           "Position": (app.positions as any)?.title || "Unknown"
         };
 
-        // Add dynamic responses
+        // Get labels from schema if available
+        const schema = (app.positions as any)?.position_forms?.[0]?.schema_json || [];
+        const labelMap: Record<string, string> = {};
+        if (Array.isArray(schema)) {
+           schema.forEach((f: any) => {
+              if (f.id && f.label) labelMap[f.id] = f.label;
+           });
+        }
+
+        // Add dynamic responses with labels as headers
         if (app.dynamic_responses_json) {
            Object.entries(app.dynamic_responses_json).forEach(([key, value]) => {
-              // Note: We might want labels instead of IDs, but for now we use keys
-              row[`Field_${key}`] = value;
+              const header = labelMap[key] || `Field_${key}`;
+              row[header] = value;
            });
         }
 
@@ -47,8 +57,9 @@ export function ExportExcelButton({ applications, positionTitle = "All Applicati
       const fileName = `Applications_${positionTitle.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
       XLSX.writeFile(workbook, fileName);
       
-      toast.success("Excel exported successfully");
+      toast.success("Excel exported with labels");
     } catch (error) {
+      console.error("Export Error:", error);
       toast.error("Failed to export Excel");
     } finally {
       setIsExporting(false);
