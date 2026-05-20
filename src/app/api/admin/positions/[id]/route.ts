@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { logAdminAction } from "@/lib/audit";
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -59,6 +60,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       .eq("id", resolvedParams.id);
 
     if (error) throw error;
+    
+    // Log the deletion
+    await logAdminAction('system_admin', 'DELETE_POSITION', 'positions', resolvedParams.id, { title: 'Deleted Position' });
     
     return NextResponse.json({ success: true });
   } catch (error: any) {
