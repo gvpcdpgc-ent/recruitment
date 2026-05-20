@@ -9,29 +9,15 @@ envContent.split('\n').forEach(line => {
   if (key && values.length > 0) env[key.trim()] = values.join('=').trim().replace(/"/g, '');
 });
 
-const url = env['NEXT_PUBLIC_SUPABASE_URL'] + '/rest/v1/position_forms?select=*';
 const key = env['NEXT_PUBLIC_SUPABASE_ANON_KEY'];
 
 async function run() {
-  if (!env['NEXT_PUBLIC_SUPABASE_URL']) {
-     console.log("NO URL"); return;
-  }
-  const res = await fetch(url, {
-    headers: {
-      'apikey': key,
-      'Authorization': `Bearer ${key}`
-    }
-  });
-  const data = await res.json();
-  console.log("position_forms table:");
-  console.log(JSON.stringify(data, null, 2));
-
-  const posRes = await fetch(env['NEXT_PUBLIC_SUPABASE_URL'] + '/rest/v1/positions?select=id,title', {
+  const res = await fetch(env['NEXT_PUBLIC_SUPABASE_URL'] + '/rest/v1/departments?select=*', {
     headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
   });
-  const posData = await posRes.json();
-  console.log("positions table:");
-  console.log(JSON.stringify(posData, null, 2));
+  const data = await res.json();
+  console.log("departments table:");
+  console.log(JSON.stringify(data, null, 2));
 }
 
 run();

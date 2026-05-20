@@ -193,7 +193,13 @@ export function PositionFormBuilder({ departments, initialData = null }: { depar
               <div className="space-y-2">
                  <Label className="text-xs uppercase text-muted-foreground">Department</Label>
                  <Select value={departmentId} onValueChange={val => setDepartmentId(val || '')}>
-                    <SelectTrigger><SelectValue placeholder="Select Department..." /></SelectTrigger>
+                    <SelectTrigger>
+                      {departmentId && departments.some(d => d.id === departmentId) ? (
+                        <span className="flex-1 text-left truncate overflow-hidden text-ellipsis line-clamp-1">{departments.find(d => d.id === departmentId)?.name}</span>
+                      ) : (
+                        <SelectValue placeholder="Select Department..." />
+                      )}
+                    </SelectTrigger>
                     <SelectContent>
                        {departments.map(d => (<SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>))}
                     </SelectContent>
