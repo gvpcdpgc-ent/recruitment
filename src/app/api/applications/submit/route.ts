@@ -117,20 +117,42 @@ export async function POST(request: Request) {
     const { data: brandings } = await supabaseServer.from('branding_settings').select('institute_name').limit(1);
     const instituteName = brandings && brandings.length > 0 ? brandings[0].institute_name : 'Faculty Recruitment Cell';
 
-    // Fetch position title
-    const { data: positionData } = await supabaseServer.from('positions').select('title').eq('id', positionId).single();
+    // Fetch position details, department, and form schema
+    const { data: fullPosData } = await supabaseServer
+      .from('positions')
+      .select(`
+        title,
+        departments(name),
+        position_forms(schema_json)
+      `)
+      .eq('id', positionId)
+      .single();
+
+    const deptName = (fullPosData?.departments as any)?.name || 'General';
+    const schemaJson = (fullPosData?.position_forms as any)?.[0]?.schema_json || [];
+    const positionTitle = fullPosData?.title || 'Faculty Position';
+
+    // Map technical Field IDs (field_xxx) to human-readable Labels
+    const mappedResponses: Record<string, any> = {};
+    schemaJson.forEach((field: any) => {
+      const value = dynamicResponses[field.id];
+      if (value !== undefined && value !== null) {
+        mappedResponses[field.label] = value;
+      }
+    });
 
     // Send confirmation email (non-blocking)
     sendMail({
       to: email,
-      subject: `Application Received: ${positionData?.title || 'Faculty Position'} — ${applicationNumber}`,
+      subject: `Application Received: ${positionTitle} — ${applicationNumber}`,
       html: buildConfirmationEmail({
         candidateName: fullName,
         candidateEmail: email,
         candidatePhone: phone,
-        positionTitle: positionData?.title || 'Faculty Position',
+        positionTitle: positionTitle,
+        departmentName: deptName,
         applicationNumber,
-        dynamicResponses: dynamicResponses,
+        dynamicResponses: mappedResponses,
       }),
     }).catch(err => console.error('Email send failed:', err));
 

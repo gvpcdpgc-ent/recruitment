@@ -16,6 +16,7 @@ const transporter = nodemailer.createTransport({
 export const buildConfirmationEmail = ({
   candidateName,
   positionTitle,
+  departmentName,
   applicationNumber,
   candidateEmail,
   candidatePhone,
@@ -23,6 +24,7 @@ export const buildConfirmationEmail = ({
 }: {
   candidateName: string;
   positionTitle: string;
+  departmentName: string;
   applicationNumber: string;
   candidateEmail: string;
   candidatePhone: string;
@@ -31,10 +33,10 @@ export const buildConfirmationEmail = ({
   const collegeName = "GAYATRI VIDYA PARISHAD COLLEGE FOR DEGREE AND PG COURSE(A)";
   
   // Format dynamic responses into a readable summary
-  const summaryEntries = Object.entries(dynamicResponses).map(([key, val]) => {
+  const summaryEntries = Object.entries(dynamicResponses).map(([label, val]) => {
     // Basic formatting for the summary table
     return `<tr>
-      <td style="padding: 8px 0; font-weight: 500; color: #475569; width: 40%; vertical-align: top;">${key}:</td>
+      <td style="padding: 8px 0; font-weight: 500; color: #475569; width: 40%; vertical-align: top;">${label}:</td>
       <td style="padding: 8px 0; color: #1e293b;">${Array.isArray(val) ? val.join(', ') : val}</td>
     </tr>`;
   }).join('');
@@ -49,7 +51,7 @@ export const buildConfirmationEmail = ({
       <div style="padding: 24px; background-color: #f8fafc; border-radius: 6px;">
         <h2 style="font-size: 18px; margin-bottom: 16px;">Application Received!</h2>
         <p>Dear <strong>${candidateName}</strong>,</p>
-        <p>Thank you for applying for the position of <strong>${positionTitle}</strong> at ${collegeName}.</p>
+        <p>Thank you for applying for the position of <strong>${positionTitle}</strong> (${departmentName}) at ${collegeName}.</p>
         <p>Your application number is: <strong>${applicationNumber}</strong></p>
         <p style="font-weight: 500; color: #1e40af;">We have successfully received your application.</p>
         
@@ -57,7 +59,15 @@ export const buildConfirmationEmail = ({
           <h3 style="font-size: 16px; margin-bottom: 12px; color: #1e40af;">Application Summary</h3>
           <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
             <tr>
-              <td style="padding: 8px 0; font-weight: 500; color: #475569; width: 40%;">Full Name:</td>
+              <td style="padding: 8px 0; font-weight: 500; color: #475569; width: 40%;">Position:</td>
+              <td style="padding: 8px 0; color: #1e293b;">${positionTitle}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: 500; color: #475569;">Department:</td>
+              <td style="padding: 8px 0; color: #1e293b;">${departmentName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: 500; color: #475569;">Full Name:</td>
               <td style="padding: 8px 0; color: #1e293b;">${candidateName}</td>
             </tr>
             <tr>
