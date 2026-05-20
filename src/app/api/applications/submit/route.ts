@@ -11,6 +11,7 @@ export async function POST(request: Request) {
     const fullName = formData.get('fullName') as string;
     const email = formData.get('email') as string;
     const phone = formData.get('phone') as string;
+    const dob = formData.get('dob') as string;
     const dynamicResponsesStr = formData.get('dynamicResponses') as string;
     
     if (!positionId || !email || !fullName) {
@@ -85,6 +86,7 @@ export async function POST(request: Request) {
         candidate_name: fullName,
         candidate_email: email,
         candidate_phone: phone,
+        candidate_dob: dob,
         application_number: applicationNumber,
         status: 'Applied',
         dynamic_responses_json: dynamicResponses,

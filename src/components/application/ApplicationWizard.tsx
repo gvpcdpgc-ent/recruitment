@@ -16,6 +16,7 @@ const step1Schema = z.object({
   fullName: z.string().min(2, "Name is required"),
   email: z.string().email("Valid email is required"),
   phone: z.string().min(10, "Valid phone is required"),
+  dob: z.string().min(1, "Date of birth is required"),
 });
 
 export type Step1Data = z.infer<typeof step1Schema>;
@@ -100,6 +101,7 @@ export function ApplicationWizard({ positionId, positionTitle, formSchemaJson = 
       formData.append("fullName", candidateData!.fullName);
       formData.append("email", candidateData!.email);
       formData.append("phone", candidateData!.phone);
+      formData.append("dob", candidateData!.dob);
       formData.append("dynamicResponses", JSON.stringify(dynamicResponses));
       if (photoFile) formData.append("photo", photoFile);
 
@@ -175,6 +177,12 @@ export function ApplicationWizard({ positionId, positionTitle, formSchemaJson = 
               <Label htmlFor="phone">Phone Number <span className="text-destructive">*</span></Label>
               <Input id="phone" type="tel" {...register("phone")} placeholder="" />
               {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="dob">Date of Birth <span className="text-destructive">*</span></Label>
+              <Input id="dob" type="date" {...register("dob")} />
+              {errors.dob && <p className="text-xs text-destructive">{errors.dob.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -336,6 +344,7 @@ export function ApplicationWizard({ positionId, positionTitle, formSchemaJson = 
                   <p><span className="font-semibold">Name:</span> {candidateData?.fullName}</p>
                   <p><span className="font-semibold">Email:</span> {candidateData?.email}</p>
                   <p><span className="font-semibold">Phone:</span> {candidateData?.phone}</p>
+                  <p><span className="font-semibold">DOB:</span> {candidateData?.dob}</p>
                 </div>
               </div>
             </div>
