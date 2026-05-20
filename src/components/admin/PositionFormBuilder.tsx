@@ -17,6 +17,7 @@ interface FormField {
    type: string;
    required: boolean;
    options?: string[]; 
+   rawOptionsDisplay?: string;
 }
 
 const FIELD_TYPES = ['Text', 'Email', 'Number', 'Textarea', 'Dropdown', 'File Upload'];
@@ -68,6 +69,9 @@ export function PositionFormBuilder({ departments, initialData = null }: { depar
   };
 
   const handleOptionsChange = (id: string, valStr: string) => {
+     // Keep the raw string for the UI so commas/spaces aren't eaten while typing
+     updateField(id, 'rawOptionsDisplay', valStr);
+     
      const options = valStr.split(',').map(s => s.trim()).filter(Boolean);
      updateField(id, 'options', options);
   };
@@ -122,7 +126,7 @@ export function PositionFormBuilder({ departments, initialData = null }: { depar
       <div className="col-span-1 lg:col-span-8 space-y-8">
         <div className="bg-card border rounded-xl p-6 shadow-sm space-y-6">
            <h3 className="text-xl font-bold border-b pb-4">Basic Information</h3>
-         
+          
          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
                <Label>Position Title <span className="text-destructive">*</span></Label>
@@ -252,9 +256,9 @@ export function PositionFormBuilder({ departments, initialData = null }: { depar
                          <div className="space-y-1 mt-2">
                             <Label className="text-xs text-muted-foreground">Options (Comma separated)</Label>
                             <Input 
-                               value={field.options?.join(', ') || ''} 
-                               onChange={(e) => handleOptionsChange(field.id, e.target.value)} 
-                               placeholder="e.g. Option 1, Option 2" 
+                                value={field.rawOptionsDisplay ?? field.options?.join(', ') ?? ''} 
+                                onChange={(e) => handleOptionsChange(field.id, e.target.value)} 
+                                placeholder="e.g. Option 1, Option 2" 
                             />
                          </div>
                       )}
