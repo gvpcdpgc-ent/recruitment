@@ -129,7 +129,9 @@ export async function POST(request: Request) {
       .single();
 
     const deptName = (fullPosData?.departments as any)?.name || 'General';
-    const schemaJson = (fullPosData?.position_forms as any)?.[0]?.schema_json || [];
+    const pf = fullPosData?.position_forms as any;
+    const pfData = Array.isArray(pf) ? (pf.length > 0 ? pf[0] : null) : pf;
+    const schemaJson = pfData?.schema_json || [];
     const positionTitle = fullPosData?.title || 'Faculty Position';
 
     // Map technical Field IDs (field_xxx) to human-readable Labels
@@ -156,6 +158,7 @@ export async function POST(request: Request) {
       await sendMail({
         to: email,
         subject: `GVPCDPGC(A) Recruitment - ${positionTitle}`,
+        text: `Dear ${fullName},\n\nWe have successfully received your application for the position of ${positionTitle} (${deptName}) at GAYATRI VIDYA PARISHAD COLLEGE FOR DEGREE AND PG COURSE(A).\n\nYour application number is: ${applicationNumber}\n\nPlease save this number for future reference.\n\nRegards,\nFaculty Recruitment Cell`,
         html: buildConfirmationEmail({
           candidateName: fullName,
           candidateEmail: email,

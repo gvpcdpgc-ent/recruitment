@@ -91,13 +91,14 @@ export const buildConfirmationEmail = ({
   `;
 };
 
-export async function sendMail({ to, subject, html }: { to: string; subject: string; html: string }) {
+export async function sendMail({ to, subject, html, text }: { to: string; subject: string; html: string; text?: string }) {
   try {
     await transporter.sendMail({
       from: `"GVP Recruitment" <${process.env.SMTP_USER || 'careers@gvpcdpgc.edu.in'}>`,
       to,
       subject,
       html,
+      text,
     });
     console.log(`Email sent successfully to ${to}`);
   } catch (error) {
@@ -105,3 +106,4 @@ export async function sendMail({ to, subject, html }: { to: string; subject: str
     throw error;
   }
 }
+
