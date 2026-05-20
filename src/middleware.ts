@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/request';
+import type { NextRequest } from 'next/server';
 
 // Basic in-memory rate limiting (Note: This will reset on serverless function restart)
 // For true production, Upstash Redis is recommended.
 const rateLimitMap = new Map<string, { count: number, resetTime: number }>();
 
 export function middleware(request: NextRequest) {
-  const ip = request.ip || '127.0.0.1';
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
   const now = Date.now();
   const limit = 60; // 60 requests per minute
   const windowMs = 60 * 1000;
