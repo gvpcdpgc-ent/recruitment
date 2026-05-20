@@ -19,7 +19,23 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Faculty Recruitment Portal",
-  description: "Apply for faculty positions.",
+  description: "Apply for faculty positions at GVP College.",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/apple-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "GVP Recruit",
+  },
+};
+
+export const viewport = {
+  themeColor: "#1e40af",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default async function RootLayout({
