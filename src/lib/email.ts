@@ -81,10 +81,6 @@ export const buildConfirmationEmail = ({
             ${summaryEntries}
           </table>
         </div>
-
-        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
-          <p style="font-size: 14px; color: #64748b; margin: 0;">Our recruitment team will review your application and get back to you shortly.</p>
-        </div>
       </div>
       
       <div style="text-align: center; margin-top: 24px; font-size: 12px; color: #94a3b8;">
