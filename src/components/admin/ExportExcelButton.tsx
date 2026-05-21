@@ -17,20 +17,32 @@ export function ExportExcelButton({ applications, positionTitle = "All Applicati
 
     setIsExporting(true);
     try {
-      // Group applications by Department
-      const groupedData: Record<string, any[]> = {};
+      // Group applications by Position ID
+      const groupedData: Record<string, { sheetName: string; rows: any[] }> = {};
+      const usedSheetNames = new Set<string>();
 
       applications.forEach(app => {
-        // Safe extraction of nested relations
+        const posId = app.position_id || "unknown";
         const pos = app.positions as any;
         const deptName = pos?.departments?.name || "General";
         
-        // Clean sheet name (Excel limits to 31 chars and no special characters)
-        const safeSheetName = deptName.replace(/[\*\?\/\\\[\]:]/g, "").substring(0, 31);
-        
-        if (!groupedData[safeSheetName]) groupedData[safeSheetName] = [];
+        // Initialize position group and determine safe sheet name
+        if (!groupedData[posId]) {
+           let baseName = deptName.replace(/[\*\?\/\\\[\]:]/g, "").substring(0, 31);
+           let finalName = baseName;
+           let suffixCounter = 1;
+           
+           // Resolve Excel sheet name collisions
+           while (usedSheetNames.has(finalName.toLowerCase())) {
+             const suffix = ` (${suffixCounter})`;
+             finalName = baseName.substring(0, 31 - suffix.length) + suffix;
+             suffixCounter++;
+           }
+           usedSheetNames.add(finalName.toLowerCase());
+           groupedData[posId] = { sheetName: finalName, rows: [] };
+        }
 
-        // Safe extraction of the schema (resolves object vs array constraint issue)
+        // Safe extraction of the schema
         const pf = pos?.position_forms;
         const pfData = Array.isArray(pf) ? (pf.length > 0 ? pf[0] : null) : pf;
         const schema = pfData?.schema_json || [];
@@ -59,7 +71,6 @@ export function ExportExcelButton({ applications, positionTitle = "All Applicati
         // Add dynamic responses
         if (app.dynamic_responses_json) {
            Object.entries(app.dynamic_responses_json).forEach(([key, value]) => {
-              // If it's undefined, we ignore it or treat it as a file
               if (value !== undefined && value !== null) {
                 const header = labelMap[key] || `Custom_${key}`;
                 row[header] = Array.isArray(value) ? value.join(", ") : value;
@@ -72,7 +83,6 @@ export function ExportExcelButton({ applications, positionTitle = "All Applicati
            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
            app.application_files.forEach((fileReq: any) => {
               const header = labelMap[fileReq.field_name] || `Document_${fileReq.field_name}`;
-              // file_url typically contains the bucket path, make it a fully qualified URL if possible
               const fullUrl = fileReq.file_url.startsWith('http') 
                 ? fileReq.file_url 
                 : `${supabaseUrl}/storage/v1/object/public/documents/${fileReq.file_url}`;
@@ -80,16 +90,16 @@ export function ExportExcelButton({ applications, positionTitle = "All Applicati
            });
         }
 
-        groupedData[safeSheetName].push(row);
+        groupedData[posId].rows.push(row);
       });
 
       // Create a Workbook
       const workbook = XLSX.utils.book_new();
 
-      // Create a Sheet for each Department
-      Object.keys(groupedData).forEach(sheetName => {
-        const worksheet = XLSX.utils.json_to_sheet(groupedData[sheetName]);
-        XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+      // Create a Sheet for each Position
+      Object.values(groupedData).forEach(group => {
+        const worksheet = XLSX.utils.json_to_sheet(group.rows);
+        XLSX.utils.book_append_sheet(workbook, worksheet, group.sheetName);
       });
       
       const fileName = `Applications_${positionTitle.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
