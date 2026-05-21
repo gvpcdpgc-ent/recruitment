@@ -25,10 +25,11 @@ export function ExportExcelButton({ applications, positionTitle = "All Applicati
         const posId = app.position_id || "unknown";
         const pos = app.positions as any;
         const deptName = pos?.departments?.name || "General";
+        const appPrefix = app.application_number ? app.application_number.split('-')[0] : "APP";
         
         // Initialize position group and determine safe sheet name
         if (!groupedData[posId]) {
-           let baseName = deptName.replace(/[\*\?\/\\\[\]:]/g, "").substring(0, 31);
+           let baseName = `${appPrefix} - ${deptName}`.replace(/[\*\?\/\\\[\]:]/g, "").substring(0, 31);
            let finalName = baseName;
            let suffixCounter = 1;
            
