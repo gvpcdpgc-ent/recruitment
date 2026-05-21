@@ -11,7 +11,12 @@ export default async function AdminApplicationsPage() {
        *,
        positions(
           title,
+          departments(name),
           position_forms(schema_json)
+       ),
+       application_files(
+          field_name,
+          file_url
        )
     `)
     .order('applied_at', { ascending: false });

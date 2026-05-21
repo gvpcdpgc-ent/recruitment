@@ -17,8 +17,33 @@ export function ExportExcelButton({ applications, positionTitle = "All Applicati
 
     setIsExporting(true);
     try {
-      // Flatten the data for Excel
-      const data = applications.map(app => {
+      // Group applications by Department
+      const groupedData: Record<string, any[]> = {};
+
+      applications.forEach(app => {
+        // Safe extraction of nested relations
+        const pos = app.positions as any;
+        const deptName = pos?.departments?.name || "General";
+        
+        // Clean sheet name (Excel limits to 31 chars and no special characters)
+        const safeSheetName = deptName.replace(/[\*\?\/\\\[\]:]/g, "").substring(0, 31);
+        
+        if (!groupedData[safeSheetName]) groupedData[safeSheetName] = [];
+
+        // Safe extraction of the schema (resolves object vs array constraint issue)
+        const pf = pos?.position_forms;
+        const pfData = Array.isArray(pf) ? (pf.length > 0 ? pf[0] : null) : pf;
+        const schema = pfData?.schema_json || [];
+
+        // Map field IDs to Labels
+        const labelMap: Record<string, string> = {};
+        if (Array.isArray(schema)) {
+           schema.forEach((f: any) => {
+              if (f.id && f.label) labelMap[f.id] = f.label;
+           });
+        }
+
+        // Build the row
         const row: any = {
            "App Number": app.application_number,
            "Status": app.status,
@@ -27,37 +52,50 @@ export function ExportExcelButton({ applications, positionTitle = "All Applicati
            "Phone": app.candidate_phone,
            "DOB": app.candidate_dob || "N/A",
            "Applied At": new Date(app.applied_at).toLocaleString(),
-           "Position": (app.positions as any)?.title || "Unknown"
+           "Position": pos?.title || "Unknown",
+           "Photograph": app.photo_url || "Not provided"
         };
 
-        // Get labels from schema if available
-        const schema = (app.positions as any)?.position_forms?.[0]?.schema_json || [];
-        const labelMap: Record<string, string> = {};
-        if (Array.isArray(schema)) {
-           schema.forEach((f: any) => {
-              if (f.id && f.label) labelMap[f.id] = f.label;
-           });
-        }
-
-        // Add dynamic responses with labels as headers
+        // Add dynamic responses
         if (app.dynamic_responses_json) {
            Object.entries(app.dynamic_responses_json).forEach(([key, value]) => {
-              const header = labelMap[key] || `Field_${key}`;
-              row[header] = value;
+              // If it's undefined, we ignore it or treat it as a file
+              if (value !== undefined && value !== null) {
+                const header = labelMap[key] || `Custom_${key}`;
+                row[header] = Array.isArray(value) ? value.join(", ") : value;
+              }
            });
         }
 
-        return row;
+        // Add File Upload Links
+        if (Array.isArray(app.application_files)) {
+           const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+           app.application_files.forEach((fileReq: any) => {
+              const header = labelMap[fileReq.field_name] || `Document_${fileReq.field_name}`;
+              // file_url typically contains the bucket path, make it a fully qualified URL if possible
+              const fullUrl = fileReq.file_url.startsWith('http') 
+                ? fileReq.file_url 
+                : `${supabaseUrl}/storage/v1/object/public/documents/${fileReq.file_url}`;
+              row[header] = fullUrl;
+           });
+        }
+
+        groupedData[safeSheetName].push(row);
       });
 
-      const worksheet = XLSX.utils.json_to_sheet(data);
+      // Create a Workbook
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Applications");
+
+      // Create a Sheet for each Department
+      Object.keys(groupedData).forEach(sheetName => {
+        const worksheet = XLSX.utils.json_to_sheet(groupedData[sheetName]);
+        XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+      });
       
       const fileName = `Applications_${positionTitle.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
       XLSX.writeFile(workbook, fileName);
       
-      toast.success("Excel exported with labels");
+      toast.success("Excel exported successfully");
     } catch (error) {
       console.error("Export Error:", error);
       toast.error("Failed to export Excel");
